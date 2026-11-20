@@ -79,6 +79,7 @@ class ShoonyaConfig:
             api_key=os.getenv("SHOONYA_API_KEY", ""),
             access_token=access_token,
             account_id=os.getenv("SHOONYA_ACCOUNT_ID"),
+            live_trading=os.getenv("SHOONYA_LIVE_TRADING", "").strip().lower() == "true",
         )
 
     def authorization_url(self) -> str:

@@ -59,6 +59,14 @@ def test_live_order_is_blocked_by_default() -> None:
         ShoonyaBroker(config(), http_post=lambda *_: {}).place_order(order)
 
 
+def test_access_token_config_honors_live_trading_false(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SHOONYA_USER_ID", "U1")
+    monkeypatch.setenv("SHOONYA_ACCESS_TOKEN", "token")
+    monkeypatch.setenv("SHOONYA_LIVE_TRADING", "false")
+
+    assert ShoonyaConfig.for_access_token().live_trading is False
+
+
 def test_limits_and_available_margin() -> None:
     def post(url: str, body: bytes, headers: dict[str, str]) -> dict[str, object]:
         assert url.endswith("Limits")

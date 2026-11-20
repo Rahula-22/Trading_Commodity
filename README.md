@@ -131,6 +131,12 @@ read-only: it does not place paper or live orders. Keep new entries disabled
 whenever the feed is disconnected or stale; after reconnect, reconcile broker
 orders and positions before resuming.
 
+`SHOONYA_LIVE_TRADING=false` keeps the broker adapter's `place_order()` call
+blocked. The live-feed script is signal-only and never calls `place_order()`,
+even if the setting is changed. This switch controls orders sent by this code;
+it does not prevent you from placing orders manually in Shoonya's platform.
+The intended workflow is to review a signal and place any real order yourself.
+
 ## Test
 
 ```powershell

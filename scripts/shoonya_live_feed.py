@@ -118,7 +118,11 @@ def main() -> int:
     broker = ShoonyaBroker(config)
     token, symbol = resolve_instrument(broker, args.token, args.symbol)
     print(f"Connecting to Shoonya live feed: MCX {symbol} (token {token})")
-    print("Read-only mode: no real or paper orders will be submitted.")
+    print(
+        "Signal-only mode: this script never submits orders. "
+        f"SHOONYA_LIVE_TRADING={'true' if config.live_trading else 'false'}; "
+        "you review signals and place any real orders manually on Shoonya."
+    )
 
     builder = TickCandleBuilder(minutes=1)
     candles = CandleSeries(maxlen=2000)
@@ -205,7 +209,7 @@ def main() -> int:
             signal = generate_signal(history)
             if signal.direction is not Direction.FLAT:
                 print(
-                    f"PAPER-SAFE SIGNAL {signal.direction.value}: {signal.reason}; "
+                    f"SIGNAL FOR MANUAL REVIEW {signal.direction.value}: {signal.reason}; "
                     f"entry={signal.entry_price} stop={signal.stop_price} "
                     f"target={signal.target_price}",
                     flush=True,
