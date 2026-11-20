@@ -1,0 +1,5 @@
+websocket-client>=1.8
+python-dotenv>=1.0
+
+[test]
+pytest>=8.0
