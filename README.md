@@ -7,9 +7,8 @@ trading is disabled by default.
 The current implementation includes:
 
 - Tick and candle structures with bounded in-memory series
-- ATR, VWAP, relative volume, and true range calculations
-- Deterministic bullish/bearish breakout signals
-- Volatility regime classification
+- Signed candle delta and prior-candle average calculations
+- Bullish/bearish order-flow imbalance signals
 - Per-trade and daily-loss risk gates
 - Market-data freshness and abnormal-tick validation
 - Paper order fills with configurable tick slippage

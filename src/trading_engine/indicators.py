@@ -59,6 +59,15 @@ def relative_volume(candles: Sequence[Candle], period: int = 20) -> Decimal | No
     return candles[-1].volume / baseline
 
 
+def average_delta(candles: Sequence[Candle], period: int = 20) -> Decimal | None:
+    """Return the mean signed candle delta over the requested prior candles."""
+    if period <= 0:
+        raise ValueError("delta period must be positive")
+    if len(candles) < period:
+        return None
+    return sum((candle.delta for candle in candles[-period:]), ZERO) / Decimal(period)
+
+
 def returns(candle: Candle, previous_close: Decimal) -> Decimal:
     if previous_close <= ZERO:
         raise ValueError("previous_close must be positive")

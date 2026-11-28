@@ -27,6 +27,7 @@ class Candle:
     low: Decimal
     close: Decimal
     volume: Decimal = ZERO
+    delta: Decimal = ZERO
 
 
 class TickCandleBuilder:
@@ -44,6 +45,7 @@ class TickCandleBuilder:
         self._current: Candle | None = None
         self._last_timestamp: datetime | None = None
         self._last_cumulative_volume: Decimal | None = None
+        self._last_trade_price: Decimal | None = None
 
     def update(
         self,
@@ -62,16 +64,23 @@ class TickCandleBuilder:
             return None  # Ignore out-of-order market updates.
 
         delta = ZERO
+        signed_delta = ZERO
         if cumulative_volume is not None and cumulative_volume >= ZERO:
             if (self._last_cumulative_volume is not None
                     and cumulative_volume >= self._last_cumulative_volume):
                 delta = cumulative_volume - self._last_cumulative_volume
             self._last_cumulative_volume = cumulative_volume
+            if delta > ZERO and self._last_trade_price is not None:
+                if price > self._last_trade_price:
+                    signed_delta = delta
+                elif price < self._last_trade_price:
+                    signed_delta = -delta
+        self._last_trade_price = price
 
         bucket = floor_timestamp(timestamp, self.minutes)
         completed: Candle | None = None
         if self._current is None:
-            self._current = Candle(bucket, price, price, price, price, delta)
+            self._current = Candle(bucket, price, price, price, price, delta, signed_delta)
         elif bucket == self._current.timestamp:
             current = self._current
             self._current = Candle(
@@ -81,10 +90,11 @@ class TickCandleBuilder:
                 min(current.low, price),
                 price,
                 current.volume + delta,
+                current.delta + signed_delta,
             )
         elif bucket > self._current.timestamp:
             completed = self._current
-            self._current = Candle(bucket, price, price, price, price, delta)
+            self._current = Candle(bucket, price, price, price, price, delta, signed_delta)
 
         self._last_timestamp = timestamp
         return completed
@@ -118,6 +128,15 @@ def aggregate_ticks(ticks: Iterable[Tick], minutes: int) -> list[Candle]:
     candles: list[Candle] = []
     for timestamp in sorted(grouped):
         values = grouped[timestamp]
+        signed_delta = ZERO
+        previous_price: Decimal | None = None
+        for tick in values:
+            if previous_price is not None:
+                if tick.price > previous_price:
+                    signed_delta += tick.volume
+                elif tick.price < previous_price:
+                    signed_delta -= tick.volume
+            previous_price = tick.price
         candles.append(
             Candle(
                 timestamp=timestamp,
@@ -126,6 +145,7 @@ def aggregate_ticks(ticks: Iterable[Tick], minutes: int) -> list[Candle]:
                 low=min(t.price for t in values),
                 close=values[-1].price,
                 volume=sum((t.volume for t in values), ZERO),
+                delta=signed_delta,
             )
         )
     return candles

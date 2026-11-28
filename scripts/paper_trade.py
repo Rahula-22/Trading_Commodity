@@ -39,6 +39,14 @@ def decimal_value(row: dict[str, object], names: tuple[str, ...]) -> Decimal:
     raise ValueError(f"missing candle field; expected one of {names}")
 
 
+def optional_decimal_value(row: dict[str, object], names: tuple[str, ...]) -> Decimal:
+    for name in names:
+        value = row.get(name)
+        if value not in (None, ""):
+            return Decimal(str(value))
+    return Decimal("0")
+
+
 def timestamp_value(row: dict[str, object]) -> datetime:
     for name in ("timestamp", "time", "datetime", "date"):
         if name in row and row[name] not in (None, ""):
@@ -79,6 +87,7 @@ def rows_from_csv(path: Path) -> list[Candle]:
                     low=decimal_value(row, ("low", "l", "intl")),
                     close=decimal_value(row, ("close", "c", "intc")),
                     volume=decimal_value(row, ("volume", "v", "vol")),
+                    delta=optional_decimal_value(row, ("delta", "net_delta", "signed_volume")),
                 )
             )
         return result
@@ -107,6 +116,7 @@ def shoonya_candles(token: str, interval: int) -> list[Candle]:
                 low=decimal_value(row, ("low", "l", "intl")),
                 close=decimal_value(row, ("close", "c", "intc")),
                 volume=decimal_value(row, ("volume", "v", "vol")),
+                delta=optional_decimal_value(row, ("delta", "net_delta", "signed_volume")),
             )
         )
     return sorted(result, key=lambda candle: candle.timestamp)

@@ -211,7 +211,9 @@ def main() -> int:
                 print(
                     f"SIGNAL FOR MANUAL REVIEW {signal.direction.value}: {signal.reason}; "
                     f"entry={signal.entry_price} stop={signal.stop_price} "
-                    f"target={signal.target_price}",
+                    f"target={signal.target_price} delta={signal.delta} "
+                    f"consolidation_ceiling={signal.consolidation_ceiling} "
+                    f"spike_ratio={signal.delta_ratio}",
                     flush=True,
                 )
 
